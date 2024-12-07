@@ -22,11 +22,17 @@ steps:
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
 
+# Debug: List files
+- script: |
+    echo "Listing files in the working directory:"
+    ls -R $(System.DefaultWorkingDirectory)
+  displayName: 'List files for debugging'
+
 # Publish build artifacts
 - task: PublishBuildArtifacts@1
   inputs:
     pathToPublish: '$(System.DefaultWorkingDirectory)/target'
-    artifactName: 'build-artifacts'
+    artifactName: 'warfile'
     publishLocation: 'Container'
 
 # Docker login
@@ -42,4 +48,5 @@ steps:
     repository: 'sonako2000/azuredevops-1'
     command: 'buildAndPush'
     dockerfile: 'AzureDockerfile'
+
 
