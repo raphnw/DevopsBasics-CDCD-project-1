@@ -7,9 +7,10 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 steps:
+# Maven build
 - task: Maven@4
   inputs:
     mavenPomFile: 'pom.xml'
@@ -24,18 +25,20 @@ steps:
 # Publish build artifacts
 - task: PublishBuildArtifacts@1
   inputs:
-    pathToPublish: '$(System.DefaultWorkingDirectory)/target'
+    pathToPublish: '$(System.DefaultWorkingDirectory)/target/*.war'
     artifactName: 'warfile'
     publishLocation: 'Container'
 
+# Docker login
 - task: Docker@2
   inputs:
     containerRegistry: 'rafdocker1'
     command: 'login'
 
+# Docker build and push
 - task: Docker@2
   inputs:
     containerRegistry: 'rafdocker1'
     repository: 'sonako2000/azuredevops-1'
     command: 'buildAndPush'
-    Dockerfile: '**/AzureDockerfile'
+    dockerfile: 'AzureDockerfile'
