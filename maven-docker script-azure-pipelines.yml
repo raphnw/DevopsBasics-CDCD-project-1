@@ -7,10 +7,10 @@ trigger:
 - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: ubuntu-latest
 
 steps:
-# Maven build
+# Step 1: Run Maven to build and package the application
 - task: Maven@4
   inputs:
     mavenPomFile: 'pom.xml'
@@ -22,32 +22,43 @@ steps:
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
 
-# Debug: List files in working directory
+# Step 2: List contents of the artifact staging directory for debugging
 - script: |
-    echo "Listing files in the working directory after Maven build:"
-    ls -R $(System.DefaultWorkingDirectory)
-  displayName: 'Debug: List working directory'
+    echo "Listing contents of the artifact staging directory..."
+    ls -la $(Build.ArtifactStagingDirectory) || echo "No files found in artifact staging directory."
+  displayName: 'Debug Artifact Staging Directory'
 
-# Publish build artifacts
+# Step 3: Copy .war files to the artifact staging directory
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)'
+    Contents: '**/*.war'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  displayName: 'Copy WAR files to artifact staging directory'
+
+# Step 4: Debug and list the temporary task outputs directory
+- script: |
+    echo "Checking the temporary task outputs directory..."
+    ls -la /home/vsts/work/_temp/task_outputs || echo "Directory does not exist or is empty."
+  displayName: 'Debug Task Outputs Directory'
+
+# Step 5: Publish the artifact to Azure DevOps
 - task: PublishBuildArtifacts@1
   inputs:
-    pathToPublish: '$(System.DefaultWorkingDirectory)/target'
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
     artifactName: 'warfile'
-    publishLocation: 'Container'
+  displayName: 'Publish WAR file artifact'
 
-# Docker login
+# Step 6: Build and push Docker image with versioning
 - task: Docker@2
   inputs:
-    containerRegistry: 'rafdocker1'
-    command: 'login'
-
-# Docker build and push
-- task: Docker@2
-  inputs:
-    containerRegistry: 'rafdocker1'
-    repository: 'sonako2000/azuredevops-1'
+    containerRegistry: 'rafdocker1' # Replace with your container registry service connection
+    repository: 'sonako2000/azuredevops-1' # Replace with your Docker repository
     command: 'buildAndPush'
-    dockerfile: 'AzureDockerfile'
-
+    Dockerfile: 'AzureDockerfile'
+    buildContext: '$(Build.SourcesDirectory)'
+    tags: |
+      $(Build.BuildId)
+  displayName: 'Build and Push Docker Image with Tags'
 
 
