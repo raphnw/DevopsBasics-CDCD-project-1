@@ -21,6 +21,13 @@ steps:
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
 
+# Publish build artifacts
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(System.DefaultWorkingDirectory)/target'
+    artifactName: 'warfile'
+    publishLocation: 'Container'
+
 - task: Docker@2
   inputs:
     containerRegistry: 'rafdocker1'
