@@ -22,11 +22,11 @@ steps:
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
 
-# Debug: List files
+# Debug: List files in working directory
 - script: |
-    echo "Listing files in the working directory:"
+    echo "Listing files in the working directory after Maven build:"
     ls -R $(System.DefaultWorkingDirectory)
-  displayName: 'List files for debugging'
+  displayName: 'Debug: List working directory'
 
 # Publish build artifacts
 - task: PublishBuildArtifacts@1
@@ -48,5 +48,6 @@ steps:
     repository: 'sonako2000/azuredevops-1'
     command: 'buildAndPush'
     dockerfile: 'AzureDockerfile'
+
 
 
